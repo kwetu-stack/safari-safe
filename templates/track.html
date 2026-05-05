@@ -21,7 +21,7 @@
 <h1>Tracking Page</h1>
 <p>Journey ID: {{ journey_id }}</p>
 
-<div id="status">Loading location...</div>
+<div id="status">Connecting...</div>
 
 <div id="map"></div>
 
@@ -30,36 +30,73 @@
 
 <script>
     const journeyId = "{{ journey_id }}";
+    const BASE = window.location.origin;
 
-    let map = L.map('map').setView([-1.2921, 36.8219], 13);
+    // Default location (Nairobi)
+    let currentLat = -1.2921;
+    let currentLng = 36.8219;
+
+    let map = L.map('map').setView([currentLat, currentLng], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap'
     }).addTo(map);
 
-    let marker = L.marker([-1.2921, 36.8219]).addTo(map);
+    let marker = L.marker([currentLat, currentLng]).addTo(map);
 
     function updateLocation() {
-        fetch(`/get_location/${journeyId}`)
+        fetch(`${BASE}/get_location/${journeyId}`)
             .then(res => res.json())
             .then(data => {
+
                 if (data.lat && data.lng) {
                     document.getElementById("status").innerText =
-                        `Current Location: ${data.lat}, ${data.lng}`;
+                        `Live Location: ${data.lat}, ${data.lng}`;
 
-                    marker.setLatLng([data.lat, data.lng]);
-                    map.setView([data.lat, data.lng], 15);
+                    smoothMove(data.lat, data.lng);
+
                 } else {
                     document.getElementById("status").innerText =
-                        "Waiting for location...";
+                        "Waiting for traveler...";
                 }
+            })
+            .catch(err => {
+                document.getElementById("status").innerText =
+                    "Connection lost. Retrying...";
+                console.error(err);
             });
     }
 
-    // Update every 3 seconds
+    // Smooth movement instead of jumping
+    function smoothMove(newLat, newLng) {
+        const steps = 20;
+        const latStep = (newLat - currentLat) / steps;
+        const lngStep = (newLng - currentLng) / steps;
+
+        let i = 0;
+
+        const interval = setInterval(() => {
+            if (i >= steps) {
+                clearInterval(interval);
+                currentLat = newLat;
+                currentLng = newLng;
+                return;
+            }
+
+            currentLat += latStep;
+            currentLng += lngStep;
+
+            marker.setLatLng([currentLat, currentLng]);
+            map.setView([currentLat, currentLng], 15);
+
+            i++;
+        }, 50);
+    }
+
+    // Poll every 3 seconds
     setInterval(updateLocation, 3000);
 
-    // Initial call
+    // First load
     updateLocation();
 </script>
 
