@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tracking Page</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+
+    <style>
+        body {
+            font-family: Arial;
+        }
+        #map {
+            height: 500px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Tracking Page</h1>
+<p>Journey ID: {{ journey_id }}</p>
+
+<div id="status">Loading location...</div>
+
+<div id="map"></div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+<script>
+    const journeyId = "{{ journey_id }}";
+
+    let map = L.map('map').setView([-1.2921, 36.8219], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    let marker = L.marker([-1.2921, 36.8219]).addTo(map);
+
+    function updateLocation() {
+        fetch(`/get_location/${journeyId}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.lat && data.lng) {
+                    document.getElementById("status").innerText =
+                        `Current Location: ${data.lat}, ${data.lng}`;
+
+                    marker.setLatLng([data.lat, data.lng]);
+                    map.setView([data.lat, data.lng], 15);
+                } else {
+                    document.getElementById("status").innerText =
+                        "Waiting for location...";
+                }
+            });
+    }
+
+    // Update every 3 seconds
+    setInterval(updateLocation, 3000);
+
+    // Initial call
+    updateLocation();
+</script>
+
+</body>
+</html>

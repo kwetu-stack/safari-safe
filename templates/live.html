@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Live Tracking</title>
+</head>
+<body>
+
+<h1>Live Tracking</h1>
+<p>Journey ID: {{ journey_id }}</p>
+
+<button onclick="sendLocation()">Send Location</button>
+
+<p id="status"></p>
+
+<script>
+function sendLocation() {
+    const status = document.getElementById("status");
+
+    if (!navigator.geolocation) {
+        sendFallback("Geolocation not supported");
+        return;
+    }
+
+    status.innerText = "Getting GPS...";
+
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            sendToServer(lat, lng, "Real GPS");
+        },
+        function(error) {
+            sendFallback("GPS blocked, using fallback");
+        }
+    );
+}
+
+function sendFallback(msg) {
+    // Nairobi fallback
+    sendToServer(-1.2921, 36.8219, msg);
+}
+
+function sendToServer(lat, lng, label) {
+    fetch("/update_location/{{ journey_id }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            latitude: lat,
+            longitude: lng
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        document.getElementById("status").innerText =
+            label + ": " + lat + ", " + lng;
+        console.log(data);
+    });
+}
+</script>
+
+</body>
+</html>
