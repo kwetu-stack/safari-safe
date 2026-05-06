@@ -1,103 +1,132 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
-    <title>Tracking Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Safari Safe Tracking</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
 
     <style>
-        body {
-            font-family: Arial;
-        }
         #map {
             height: 500px;
+            width: 100%;
+            border-radius: 20px;
             margin-top: 20px;
+        }
+
+        .tracking-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            margin-top: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .live-badge {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .location-text {
+            font-size: 22px;
+            margin-top: 10px;
+            color: #111827;
         }
     </style>
 </head>
+
 <body>
 
-<h1>Tracking Page</h1>
-<p>Journey ID: {{ journey_id }}</p>
+<div class="container">
 
-<div id="status">Connecting...</div>
+    <div class="live-badge">
+        LIVE TRACKING ACTIVE
+    </div>
 
-<div id="map"></div>
+    <h1>Tracking Journey</h1>
+
+    <p>
+        Tracking live journey location in real time.
+    </p>
+
+    <div class="tracking-card">
+
+        <p>
+            <strong>Journey ID:</strong>
+            {{ journey_id }}
+        </p>
+
+        <div id="status" class="location-text">
+            Waiting for live location...
+        </div>
+
+    </div>
+
+    <div id="map"></div>
+
+</div>
 
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
 <script>
-    const journeyId = "{{ journey_id }}";
-    const BASE = window.location.origin;
 
-    // Default location (Nairobi)
-    let currentLat = -1.2921;
-    let currentLng = 36.8219;
+const journeyId = "{{ journey_id }}";
 
-    let map = L.map('map').setView([currentLat, currentLng], 13);
+let map = L.map('map').setView([-1.2921, 36.8219], 13);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-    }).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap'
+}).addTo(map);
 
-    let marker = L.marker([currentLat, currentLng]).addTo(map);
+let marker = L.marker([-1.2921, 36.8219]).addTo(map);
 
-    function updateLocation() {
-        fetch(`${BASE}/get_location/${journeyId}`)
-            .then(res => res.json())
-            .then(data => {
+function updateLocation() {
 
-                if (data.lat && data.lng) {
-                    document.getElementById("status").innerText =
-                        `Live Location: ${data.lat}, ${data.lng}`;
+    fetch(`/get_location/${journeyId}`)
 
-                    smoothMove(data.lat, data.lng);
+    .then(res => res.json())
 
-                } else {
-                    document.getElementById("status").innerText =
-                        "Waiting for traveler...";
-                }
-            })
-            .catch(err => {
-                document.getElementById("status").innerText =
-                    "Connection lost. Retrying...";
-                console.error(err);
-            });
-    }
+    .then(data => {
 
-    // Smooth movement instead of jumping
-    function smoothMove(newLat, newLng) {
-        const steps = 20;
-        const latStep = (newLat - currentLat) / steps;
-        const lngStep = (newLng - currentLng) / steps;
+        if (data.lat && data.lng) {
 
-        let i = 0;
+            document.getElementById("status").innerText =
+                `Current Location: ${data.lat}, ${data.lng}`;
 
-        const interval = setInterval(() => {
-            if (i >= steps) {
-                clearInterval(interval);
-                currentLat = newLat;
-                currentLng = newLng;
-                return;
-            }
+            marker.setLatLng([data.lat, data.lng]);
 
-            currentLat += latStep;
-            currentLng += lngStep;
+            map.setView([data.lat, data.lng], 15);
 
-            marker.setLatLng([currentLat, currentLng]);
-            map.setView([currentLat, currentLng], 15);
+        } else {
 
-            i++;
-        }, 50);
-    }
+            document.getElementById("status").innerText =
+                "Waiting for live location...";
 
-    // Poll every 3 seconds
-    setInterval(updateLocation, 3000);
+        }
 
-    // First load
-    updateLocation();
+    });
+
+}
+
+// Refresh every 3 seconds
+setInterval(updateLocation, 3000);
+
+// Initial load
+updateLocation();
+
 </script>
 
 </body>

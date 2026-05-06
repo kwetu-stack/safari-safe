@@ -1,16 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Start Journey</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
 
-<h1>Start Journey</h1>
+    <div class="container">
 
-<form method="POST">
-    <input type="text" name="destination" placeholder="Destination">
-    <button type="submit">Start</button>
-</form>
+        <h1>Start Journey</h1>
+
+        <p>
+            Enter your destination and begin sharing your live journey
+            with trusted family members.
+        </p>
+
+        <form method="POST">
+
+            <input
+                type="text"
+                name="destination"
+                placeholder="Enter destination"
+                required
+            >
+
+            <br>
+
+            <button type="submit">Begin Tracking</button>
+
+        </form>
+
+    </div>
 
 </body>
+
 </html>

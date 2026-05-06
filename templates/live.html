@@ -1,21 +1,70 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Live Tracking</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
 
-<h1>Live Tracking</h1>
-<p>Journey ID: {{ journey_id }}</p>
+    <div class="container">
 
-<button onclick="sendLocation()">Send Location</button>
+        <h1>Journey Live</h1>
 
-<p id="status"></p>
+        <p>
+            Your live location can now be shared with trusted family members.
+        </p>
+
+        <div class="journey-box">
+            Journey ID:
+            <strong>{{ journey_id }}</strong>
+        </div>
+
+        <div class="link-box">
+            <p><strong>Tracking Link</strong></p>
+
+            <input
+                type="text"
+                id="trackingLink"
+                readonly
+                value="{{ request.host_url }}track/{{ journey_id }}"
+            >
+
+            <button onclick="copyLink()">
+                Copy Tracking Link
+            </button>
+        </div>
+
+        <button onclick="sendLocation()">
+            Share My Live Location
+        </button>
+
+        <p id="status" class="status-text">
+            Waiting to share location...
+        </p>
+
+    </div>
 
 <script>
-const BASE = window.location.origin;
+
+function copyLink() {
+    const copyText = document.getElementById("trackingLink");
+
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+
+    navigator.clipboard.writeText(copyText.value);
+
+    alert("Tracking link copied!");
+}
 
 function sendLocation() {
+
     const status = document.getElementById("status");
 
     if (!navigator.geolocation) {
@@ -23,52 +72,64 @@ function sendLocation() {
         return;
     }
 
-    status.innerText = "Getting GPS...";
+    status.innerText = "Getting your GPS location...";
 
     navigator.geolocation.getCurrentPosition(
+
         function(position) {
+
             const lat = position.coords.latitude;
             const lng = position.coords.longitude;
 
-            sendToServer(lat, lng, "Real GPS");
+            sendToServer(lat, lng, "Live location shared successfully");
+
         },
+
         function(error) {
-            sendFallback("GPS blocked, using fallback");
-        },
-        {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
+
+            sendFallback("GPS blocked, using fallback location");
+
         }
+
     );
 }
 
-function sendFallback(msg) {
-    // Nairobi fallback
-    sendToServer(-1.2921, 36.8219, msg);
+function sendFallback(message) {
+
+    // Nairobi fallback location
+    sendToServer(-1.2921, 36.8219, message);
 }
 
-function sendToServer(lat, lng, label) {
-    fetch(`${BASE}/update_location/{{ journey_id }}`, {
+function sendToServer(lat, lng, message) {
+
+    fetch("/update_location/{{ journey_id }}", {
+
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
         body: JSON.stringify({
             latitude: lat,
             longitude: lng
         })
+
     })
+
     .then(res => res.json())
+
     .then(data => {
+
         document.getElementById("status").innerText =
-            label + ": " + lat + ", " + lng;
+            message;
+
         console.log(data);
-    })
-    .catch(err => {
-        document.getElementById("status").innerText =
-            "Error sending location";
-        console.error(err);
+
     });
+
 }
+
 </script>
 
 </body>
