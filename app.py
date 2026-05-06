@@ -6,6 +6,10 @@ app = Flask(__name__)
 # TEMP storage (in-memory)
 locations = {}
 
+# Store ended journeys
+ended_journeys = set()
+
+
 # -----------------------
 # Home
 # -----------------------
@@ -19,7 +23,9 @@ def home():
 # -----------------------
 @app.route("/start", methods=["GET", "POST"])
 def start():
+
     if request.method == "POST":
+
         destination = request.form.get("destination")
 
         # Generate unique journey ID
@@ -35,7 +41,11 @@ def start():
 # -----------------------
 @app.route("/live/<journey_id>")
 def live(journey_id):
-    return render_template("live.html", journey_id=journey_id)
+
+    return render_template(
+        "live.html",
+        journey_id=journey_id
+    )
 
 
 # -----------------------
@@ -43,7 +53,11 @@ def live(journey_id):
 # -----------------------
 @app.route("/track/<journey_id>")
 def track(journey_id):
-    return render_template("track.html", journey_id=journey_id)
+
+    return render_template(
+        "track.html",
+        journey_id=journey_id
+    )
 
 
 # -----------------------
@@ -51,6 +65,7 @@ def track(journey_id):
 # -----------------------
 @app.route("/update_location/<journey_id>", methods=["POST"])
 def update_location(journey_id):
+
     data = request.get_json()
 
     lat = data.get("latitude")
@@ -61,7 +76,9 @@ def update_location(journey_id):
         "lng": lng
     }
 
-    return jsonify({"status": "ok"})
+    return jsonify({
+        "status": "ok"
+    })
 
 
 # -----------------------
@@ -69,7 +86,30 @@ def update_location(journey_id):
 # -----------------------
 @app.route("/get_location/<journey_id>")
 def get_location(journey_id):
-    return jsonify(locations.get(journey_id, {}))
+
+    # Check if journey ended
+    if journey_id in ended_journeys:
+
+        return jsonify({
+            "ended": True
+        })
+
+    return jsonify(
+        locations.get(journey_id, {})
+    )
+
+
+# -----------------------
+# API: End Journey
+# -----------------------
+@app.route("/end_journey/<journey_id>", methods=["POST"])
+def end_journey(journey_id):
+
+    ended_journeys.add(journey_id)
+
+    return jsonify({
+        "status": "ended"
+    })
 
 
 # -----------------------

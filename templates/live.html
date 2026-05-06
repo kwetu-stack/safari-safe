@@ -12,50 +12,77 @@
 
 <body>
 
-    <div class="container">
+<div class="container">
 
-        <h1>Journey Live</h1>
+    <h1>Journey Live</h1>
 
-        <p>
-            Your live location can now be shared with trusted family members.
-        </p>
+    <p>
+        Your live location can now be shared with trusted family members.
+    </p>
 
-        <div class="journey-box">
-            Journey ID:
-            <strong>{{ journey_id }}</strong>
-        </div>
+    <div class="journey-box">
+        Journey ID:
+        <strong>{{ journey_id }}</strong>
+    </div>
 
-        <div class="link-box">
-            <p><strong>Tracking Link</strong></p>
+    <div class="link-box">
 
-            <input
-                type="text"
-                id="trackingLink"
-                readonly
-                value="{{ request.host_url }}track/{{ journey_id }}"
-            >
+        <p><strong>Tracking Link</strong></p>
 
-            <button onclick="copyLink()">
-                Copy Tracking Link
-            </button>
-        </div>
+        <input
+            type="text"
+            id="trackingLink"
+            readonly
+            value="{{ request.host_url }}track/{{ journey_id }}"
+        >
 
-        <button onclick="sendLocation()">
-            Share My Live Location
+        <button onclick="copyLink()">
+            Copy Tracking Link
         </button>
 
-        <p id="status" class="status-text">
-            Waiting to share location...
-        </p>
+        <button onclick="shareWhatsApp()">
+            Share on WhatsApp
+        </button>
 
     </div>
 
+    <button onclick="sendLocation()">
+        Share My Live Location
+    </button>
+
+    <button onclick="endJourney()">
+        End Journey
+    </button>
+
+    <p id="status" class="status-text">
+        Waiting to share location...
+    </p>
+
+</div>
+
 <script>
 
+function shareWhatsApp() {
+
+    const trackingLink =
+        "{{ request.host_url }}track/{{ journey_id }}";
+
+    const message =
+        "Track my live journey location here: " + trackingLink;
+
+    const whatsappURL =
+        "https://wa.me/?text=" + encodeURIComponent(message);
+
+    window.open(whatsappURL, "_blank");
+}
+
 function copyLink() {
-    const copyText = document.getElementById("trackingLink");
+
+    const copyText =
+        document.getElementById("trackingLink");
 
     copyText.select();
+
     copyText.setSelectionRange(0, 99999);
 
     navigator.clipboard.writeText(copyText.value);
@@ -65,29 +92,44 @@ function copyLink() {
 
 function sendLocation() {
 
-    const status = document.getElementById("status");
+    const status =
+        document.getElementById("status");
 
     if (!navigator.geolocation) {
-        sendFallback("Geolocation not supported");
+
+        sendFallback(
+            "Geolocation not supported"
+        );
+
         return;
     }
 
-    status.innerText = "Getting your GPS location...";
+    status.innerText =
+        "Getting your GPS location...";
 
     navigator.geolocation.getCurrentPosition(
 
         function(position) {
 
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
+            const lat =
+                position.coords.latitude;
 
-            sendToServer(lat, lng, "Live location shared successfully");
+            const lng =
+                position.coords.longitude;
+
+            sendToServer(
+                lat,
+                lng,
+                "Live location shared successfully"
+            );
 
         },
 
         function(error) {
 
-            sendFallback("GPS blocked, using fallback location");
+            sendFallback(
+                "GPS blocked, using fallback location"
+            );
 
         }
 
@@ -97,7 +139,11 @@ function sendLocation() {
 function sendFallback(message) {
 
     // Nairobi fallback location
-    sendToServer(-1.2921, 36.8219, message);
+    sendToServer(
+        -1.2921,
+        36.8219,
+        message
+    );
 }
 
 function sendToServer(lat, lng, message) {
@@ -125,6 +171,45 @@ function sendToServer(lat, lng, message) {
             message;
 
         console.log(data);
+
+    })
+
+    .catch(error => {
+
+        document.getElementById("status").innerText =
+            "Failed to share location.";
+
+        console.error(error);
+
+    });
+
+}
+
+function endJourney() {
+
+    fetch("/end_journey/{{ journey_id }}", {
+
+        method: "POST"
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        document.getElementById("status").innerText =
+            "Journey ended safely.";
+
+        alert("Journey ended successfully.");
+
+    })
+
+    .catch(error => {
+
+        document.getElementById("status").innerText =
+            "Failed to end journey.";
+
+        console.error(error);
 
     });
 

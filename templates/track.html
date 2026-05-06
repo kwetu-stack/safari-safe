@@ -14,6 +14,7 @@
         href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
 
     <style>
+
         #map {
             height: 500px;
             width: 100%;
@@ -44,7 +45,9 @@
             margin-top: 10px;
             color: #111827;
         }
+
     </style>
+
 </head>
 
 <body>
@@ -85,13 +88,17 @@
 
 const journeyId = "{{ journey_id }}";
 
-let map = L.map('map').setView([-1.2921, 36.8219], 13);
+let map =
+    L.map('map').setView([-1.2921, 36.8219], 16);
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+L.tileLayer(
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+{
     attribution: '© OpenStreetMap'
 }).addTo(map);
 
-let marker = L.marker([-1.2921, 36.8219]).addTo(map);
+let marker =
+    L.marker([-1.2921, 36.8219]).addTo(map);
 
 function updateLocation() {
 
@@ -101,21 +108,48 @@ function updateLocation() {
 
     .then(data => {
 
+        // Journey ended
+        if (data.ended) {
+
+            document.getElementById("status").innerText =
+                "Journey has ended safely.";
+
+            return;
+        }
+
+        // Live location available
         if (data.lat && data.lng) {
 
             document.getElementById("status").innerText =
                 `Current Location: ${data.lat}, ${data.lng}`;
 
-            marker.setLatLng([data.lat, data.lng]);
+            marker.setLatLng([
+                data.lat,
+                data.lng
+            ]);
 
-            map.setView([data.lat, data.lng], 15);
+            map.setView([
+                data.lat,
+                data.lng
+            ], 16);
 
-        } else {
+        }
+
+        else {
 
             document.getElementById("status").innerText =
                 "Waiting for live location...";
 
         }
+
+    })
+
+    .catch(error => {
+
+        document.getElementById("status").innerText =
+            "Connection problem.";
+
+        console.error(error);
 
     });
 
