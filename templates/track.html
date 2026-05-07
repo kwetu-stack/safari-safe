@@ -105,16 +105,12 @@ let map = L.map('map').setView(
 
 // Better map style
 L.tileLayer(
-    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
 {
-    attribution: '© OpenStreetMap',
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    subdomains: 'abcd',
     maxZoom: 20
 }).addTo(map);
-
-// Better marker
-let marker = L.marker(
-    [-1.2921, 36.8219]
-).addTo(map);
 
 function updateLocation() {
 
