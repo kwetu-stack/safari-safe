@@ -16,34 +16,44 @@
     <style>
 
         #map {
-            height: 500px;
+            height: 600px;
             width: 100%;
-            border-radius: 20px;
+            border-radius: 24px;
             margin-top: 20px;
+            overflow: hidden;
+            border: 3px solid rgba(255,255,255,0.08);
         }
 
         .tracking-card {
-            background: white;
+            background: rgba(255,255,255,0.08);
             padding: 25px;
-            border-radius: 20px;
+            border-radius: 24px;
             margin-top: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            backdrop-filter: blur(10px);
         }
 
         .live-badge {
             display: inline-block;
             background: #dc2626;
             color: white;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border-radius: 999px;
             font-size: 14px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
         }
 
         .location-text {
-            font-size: 22px;
-            margin-top: 10px;
-            color: #111827;
+            font-size: 24px;
+            margin-top: 15px;
+            color: #38bdf8;
+            line-height: 1.5;
+        }
+
+        .journey-id {
+            font-size: 24px;
+            color: white;
         }
 
     </style>
@@ -61,15 +71,15 @@
     <h1>Tracking Journey</h1>
 
     <p>
-        Tracking live journey location in real time.
+        Live journey location updates in real time.
     </p>
 
     <div class="tracking-card">
 
-        <p>
+        <div class="journey-id">
             <strong>Journey ID:</strong>
             {{ journey_id }}
-        </p>
+        </div>
 
         <div id="status" class="location-text">
             Waiting for live location...
@@ -88,17 +98,23 @@
 
 const journeyId = "{{ journey_id }}";
 
-let map =
-    L.map('map').setView([-1.2921, 36.8219], 16);
+let map = L.map('map').setView(
+    [-1.2921, 36.8219],
+    18
+);
 
+// Better map style
 L.tileLayer(
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 {
-    attribution: '© OpenStreetMap'
+    attribution: '© OpenStreetMap',
+    maxZoom: 20
 }).addTo(map);
 
-let marker =
-    L.marker([-1.2921, 36.8219]).addTo(map);
+// Better marker
+let marker = L.marker(
+    [-1.2921, 36.8219]
+).addTo(map);
 
 function updateLocation() {
 
@@ -114,14 +130,32 @@ function updateLocation() {
             document.getElementById("status").innerText =
                 "Journey has ended safely.";
 
+            // Stop refreshing
+            clearInterval(refreshInterval);
+
+            // Change badge color and text
+            const badge =
+                document.querySelector(".live-badge");
+
+            if (badge) {
+
+                badge.innerText =
+                    "JOURNEY ENDED";
+
+                badge.style.background =
+                    "#16a34a";
+            }
+
             return;
         }
 
-        // Live location available
+        // Live location exists
         if (data.lat && data.lng) {
 
             document.getElementById("status").innerText =
-                `Current Location: ${data.lat}, ${data.lng}`;
+                `Current Location:
+                ${data.lat},
+                ${data.lng}`;
 
             marker.setLatLng([
                 data.lat,
@@ -131,7 +165,7 @@ function updateLocation() {
             map.setView([
                 data.lat,
                 data.lng
-            ], 16);
+            ], 18);
 
         }
 
@@ -156,7 +190,8 @@ function updateLocation() {
 }
 
 // Refresh every 3 seconds
-setInterval(updateLocation, 3000);
+const refreshInterval =
+    setInterval(updateLocation, 3000);
 
 // Initial load
 updateLocation();

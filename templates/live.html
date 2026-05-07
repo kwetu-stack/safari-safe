@@ -17,7 +17,7 @@
     <h1>Journey Live</h1>
 
     <p>
-        Your live location can now be shared with trusted family members.
+        Share your live location safely with trusted family members.
     </p>
 
     <div class="journey-box">
@@ -25,9 +25,37 @@
         <strong>{{ journey_id }}</strong>
     </div>
 
+    <!-- STEP 1 -->
     <div class="link-box">
 
-        <p><strong>Tracking Link</strong></p>
+        <p>
+            <strong>
+                STEP 1: Activate Your Live GPS Location
+            </strong>
+        </p>
+
+        <p>
+            Click the button below first before sharing the tracking link.
+        </p>
+
+        <button onclick="sendLocation()">
+            Share My Live Location
+        </button>
+
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="link-box">
+
+        <p>
+            <strong>
+                STEP 2: Share Tracking Link
+            </strong>
+        </p>
+
+        <p>
+            Send the tracking link to trusted family members.
+        </p>
 
         <input
             type="text"
@@ -36,23 +64,34 @@
             value="{{ request.host_url }}track/{{ journey_id }}"
         >
 
-        <button onclick="copyLink()">
-            Copy Tracking Link
-        </button>
-
         <button onclick="shareWhatsApp()">
             Share on WhatsApp
         </button>
 
+        <button onclick="copyLink()">
+            Copy Tracking Link
+        </button>
+
     </div>
 
-    <button onclick="sendLocation()">
-        Share My Live Location
-    </button>
+    <!-- STEP 3 -->
+    <div class="link-box">
 
-    <button onclick="endJourney()">
-        End Journey
-    </button>
+        <p>
+            <strong>
+                STEP 3: End Journey
+            </strong>
+        </p>
+
+        <p>
+            End the journey once you arrive safely.
+        </p>
+
+        <button onclick="endJourney()">
+            End Journey
+        </button>
+
+    </div>
 
     <p id="status" class="status-text">
         Waiting to share location...
@@ -120,7 +159,7 @@ function sendLocation() {
             sendToServer(
                 lat,
                 lng,
-                "Live location shared successfully"
+                "Live GPS location activated successfully."
             );
 
         },
@@ -138,7 +177,6 @@ function sendLocation() {
 
 function sendFallback(message) {
 
-    // Nairobi fallback location
     sendToServer(
         -1.2921,
         36.8219,
