@@ -35,11 +35,15 @@
         </p>
 
         <p>
-            Click the button below first before sharing the tracking link.
+            Click below once to start continuous live tracking.
         </p>
 
-        <button onclick="sendLocation()">
-            Share My Live Location
+        <button
+            id="liveButton"
+            onclick="startLiveTracking()">
+
+            Start Live Tracking
+
         </button>
 
     </div>
@@ -94,12 +98,14 @@
     </div>
 
     <p id="status" class="status-text">
-        Waiting to share location...
+        Waiting to start live tracking...
     </p>
 
 </div>
 
 <script>
+
+let trackingInterval = null;
 
 function shareWhatsApp() {
 
@@ -129,22 +135,47 @@ function copyLink() {
     alert("Tracking link copied!");
 }
 
-function sendLocation() {
+function startLiveTracking() {
 
     const status =
         document.getElementById("status");
 
+    const liveButton =
+        document.getElementById("liveButton");
+
     if (!navigator.geolocation) {
 
-        sendFallback(
-            "Geolocation not supported"
-        );
+        status.innerText =
+            "Geolocation not supported.";
+
+        return;
+    }
+
+    // Prevent multiple intervals
+    if (trackingInterval !== null) {
 
         return;
     }
 
     status.innerText =
-        "Getting your GPS location...";
+        "Starting continuous live tracking...";
+
+    liveButton.innerText =
+        "Live Tracking Active";
+
+    liveButton.disabled = true;
+
+    // Send immediately first time
+    sendCurrentLocation();
+
+    // Continue sending every 5 seconds
+    trackingInterval = setInterval(
+        sendCurrentLocation,
+        5000
+    );
+}
+
+function sendCurrentLocation() {
 
     navigator.geolocation.getCurrentPosition(
 
@@ -159,28 +190,22 @@ function sendLocation() {
             sendToServer(
                 lat,
                 lng,
-                "Live GPS location activated successfully."
+                "Live tracking active."
             );
 
         },
 
         function(error) {
 
-            sendFallback(
-                "GPS blocked, using fallback location"
-            );
+            document.getElementById("status").innerText =
+                "Unable to get GPS location.";
 
+        },
+
+        {
+            enableHighAccuracy: true
         }
 
-    );
-}
-
-function sendFallback(message) {
-
-    sendToServer(
-        -1.2921,
-        36.8219,
-        message
     );
 }
 
@@ -215,7 +240,7 @@ function sendToServer(lat, lng, message) {
     .catch(error => {
 
         document.getElementById("status").innerText =
-            "Failed to share location.";
+            "Failed to update live location.";
 
         console.error(error);
 
@@ -224,6 +249,12 @@ function sendToServer(lat, lng, message) {
 }
 
 function endJourney() {
+
+    // Stop live updates
+    if (trackingInterval !== null) {
+
+        clearInterval(trackingInterval);
+    }
 
     fetch("/end_journey/{{ journey_id }}", {
 
