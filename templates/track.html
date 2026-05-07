@@ -112,6 +112,11 @@ L.tileLayer(
     maxZoom: 20
 }).addTo(map);
 
+// Tracking marker
+let marker = L.marker(
+    [-1.2921, 36.8219]
+).addTo(map);
+
 function updateLocation() {
 
     fetch(`/get_location/${journeyId}`)
