@@ -107,10 +107,9 @@ let map = L.map('map').setView(
 
 // Better map style
 L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    subdomains: 'abcd',
+    attribution: '&copy; OpenStreetMap contributors',
     maxZoom: 20
 }).addTo(map);
 
