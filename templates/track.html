@@ -2,16 +2,20 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Safari Safe Tracking</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
 
     <!-- Leaflet CSS -->
     <link rel="stylesheet"
-        href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+          href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
 
     <style>
 
@@ -56,6 +60,24 @@
             color: white;
         }
 
+        .end-btn {
+            width: 100%;
+            margin-top: 25px;
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .end-btn:hover {
+            background: #b91c1c;
+        }
+
     </style>
 
 </head>
@@ -81,13 +103,24 @@
             {{ journey_id }}
         </div>
 
-        <div id="status" class="location-text">
+        <div id="status"
+             class="location-text">
+
             Waiting for live location...
+
         </div>
 
     </div>
 
     <div id="map"></div>
+
+    <!-- END JOURNEY BUTTON -->
+    <button class="end-btn"
+            onclick="endJourney()">
+
+        End Journey
+
+    </button>
 
 </div>
 
@@ -105,7 +138,7 @@ let map = L.map('map').setView(
     13
 );
 
-// Better map style
+// OpenStreetMap
 L.tileLayer(
     'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
 {
@@ -113,7 +146,7 @@ L.tileLayer(
     maxZoom: 20
 }).addTo(map);
 
-// Tracking marker
+// Marker
 let marker = L.marker(
     [-1.2921, 36.8219]
 ).addTo(map);
@@ -132,10 +165,8 @@ function updateLocation() {
             document.getElementById("status").innerText =
                 "Journey has ended safely.";
 
-            // Stop refreshing
             clearInterval(refreshInterval);
 
-            // Change badge color and text
             const badge =
                 document.querySelector(".live-badge");
 
@@ -164,7 +195,7 @@ function updateLocation() {
                 data.lng
             ]);
 
-            // Only center map first time
+            // Only set view first time
             if (firstUpdate) {
 
                 map.setView([
@@ -190,6 +221,36 @@ function updateLocation() {
 
         document.getElementById("status").innerText =
             "Connection problem.";
+
+        console.error(error);
+
+    });
+
+}
+
+// END JOURNEY
+function endJourney() {
+
+    fetch(`/end_journey/${journeyId}`, {
+
+        method: "POST"
+
+    })
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        alert("Journey ended successfully.");
+
+        document.getElementById("status").innerText =
+            "Journey has ended safely.";
+
+    })
+
+    .catch(error => {
+
+        alert("Failed to end journey.");
 
         console.error(error);
 
