@@ -195,7 +195,7 @@ function updateLocation() {
                 data.lng
             ]);
 
-            // Only set view first time
+            // Only set map center first time
             if (firstUpdate) {
 
                 map.setView([
@@ -243,8 +243,8 @@ function endJourney() {
 
         alert("Journey ended successfully.");
 
-        document.getElementById("status").innerText =
-            "Journey has ended safely.";
+        // Redirect back to home page
+        window.location.href = "/";
 
     })
 
